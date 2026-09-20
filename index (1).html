@@ -109,6 +109,22 @@
     }
     .nav-cta:hover { background: var(--gold-light); transform: translateY(-1px); }
 
+    .nav-quote {
+      background: transparent;
+      color: #fff;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      font-size: 0.875rem;
+      padding: 0.6rem 1.4rem;
+      border: 1.5px solid rgba(255,255,255,0.4);
+      cursor: pointer;
+      text-decoration: none;
+      letter-spacing: 0.03em;
+      transition: border-color 0.2s, transform 0.2s;
+      margin-right: 0.75rem;
+    }
+    .nav-quote:hover { border-color: #fff; transform: translateY(-1px); }
+
     .hero-body {
       position: relative;
       z-index: 10;
@@ -728,6 +744,7 @@
     <div class="logo">
       <img src="/logo-nav.png" alt="After Hours Bookkeeping" style="height:68px; width:auto; display:block; ">
     </div>
+    <a href="#pricing" class="nav-quote">Instant Quote</a>
     <a href="#contact" class="nav-cta">Get in Touch</a>
   </nav>
 
@@ -2056,8 +2073,10 @@
         return emailjs.send('service_y6mn8qs', 'template_0motxqt', templateParams);
       })
       .then(() => {
-        /* Trigger Google Apps Script to generate documents */
-        return fetch(APPS_SCRIPT_URL, {
+        /* Trigger Google Apps Script to generate documents — fire it, but don't
+           make the client wait for it to finish (it can take a minute or more
+           due to the Asana task creation loop) */
+        fetch(APPS_SCRIPT_URL, {
           method: 'POST',
           mode: 'no-cors',
           headers: { 'Content-Type': 'application/json' },
@@ -2070,9 +2089,8 @@
             start_date:    templateParams.start_date,
             services:      templateParams.services || document.getElementById('ob-services').innerText,
           })
-        });
-      })
-      .then(() => {
+        }).catch(err => console.error('Apps Script error (background):', err));
+
         document.getElementById('ob-success').style.display = 'block';
         document.getElementById('ob-success').scrollIntoView({ behavior: 'smooth', block: 'start' });
       })
