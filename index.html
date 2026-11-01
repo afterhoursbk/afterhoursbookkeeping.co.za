@@ -1580,7 +1580,7 @@
     const email = document.getElementById('email-quote-input').value;
     if (!email || !email.includes('@')) { alert('Please enter a valid email address.'); return; }
     const { planLabel, total, includes } = quoteState;
-    const params = { client_email: email, to_email: email, plan: planLabel + ' Plan', monthly_fee: 'R ' + total.toLocaleString() + ' (VAT Exclusive)', services: includes.join(', ') };
+    const params = { client_email: email, to_email: email, plan: planLabel + ' Plan', monthly_fee: 'R ' + total.toLocaleString() + ' / month (VAT Exclusive)', services: includes.join(', '), heading: 'Your After Hours Bookkeeping quote', intro_1: 'Thank you for your interest in After Hours Bookkeeping. Here is the quote you requested.', intro_2: 'To go ahead, or if you have any questions, simply reply to this email or message us on WhatsApp. We will be in touch <strong>within 24 hours</strong> to discuss next steps.', extra_label: 'Includes', extra_value: includes.join(', ') };
     const btn = document.querySelector('button[onclick="submitEmailQuote()"]');
     btn.textContent = 'Sending...'; btn.disabled = true;
     emailjs.send('service_y6mn8qs', 'template_0motxqt', params)
@@ -2071,6 +2071,11 @@
       plan:             document.getElementById('ob-plan').textContent,
       monthly_fee:      document.getElementById('ob-fee').textContent,
       start_date:       formatDate(document.getElementById('ob-start-date').value) || '—',
+      heading:          'Welcome aboard, ' + document.getElementById('ob-contact-name').value + '!',
+      intro_1:          'Thank you for choosing After Hours Bookkeeping. We have received your onboarding submission and are reviewing your details.',
+      intro_2:          'A member of our team will be in touch <strong>within 24 hours</strong> with your engagement letter and next steps.',
+      extra_label:      'Start date',
+      extra_value:      formatDate(document.getElementById('ob-start-date').value) || '—',
     };
 
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyl_IiUyAZF0uaRsk1RsGxWVEYJALPkkvPXaNOrtqs7MohcwmU2JJdCEEofWJboo945-A/exec';
