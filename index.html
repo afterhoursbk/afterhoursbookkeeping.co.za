@@ -1583,7 +1583,10 @@
     const params = { client_email: email, to_email: email, plan: planLabel + ' Plan', monthly_fee: 'R ' + total.toLocaleString() + ' / month (VAT Exclusive)', services: includes.join(', '), heading: 'Your After Hours Bookkeeping quote', intro_1: 'Thank you for your interest in After Hours Bookkeeping. Here is the quote you requested.', intro_2: 'To go ahead, or if you have any questions, simply reply to this email or message us on WhatsApp. We will be in touch <strong>within 24 hours</strong> to discuss next steps.', extra_label: 'Includes', extra_value: includes.join(', ') };
     const btn = document.querySelector('button[onclick="submitEmailQuote()"]');
     btn.textContent = 'Sending...'; btn.disabled = true;
-    emailjs.send('service_y6mn8qs', 'template_0motxqt', params)
+    fetch('https://script.google.com/macros/s/AKfycbyl_IiUyAZF0uaRsk1RsGxWVEYJALPkkvPXaNOrtqs7MohcwmU2JJdCEEofWJboo945-A/exec', {
+      method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ type: 'quote', client_email: email, plan: params.plan, monthly_fee: params.monthly_fee, services: params.services })
+    })
       .then(() => { document.getElementById('email-quote-box').innerHTML = `<p style="color:var(--sky); font-weight:600; text-align:center; padding:1rem;">✅ Quote sent to ${email}! We'll be in touch shortly.</p>`; })
       .catch(() => { btn.textContent = 'Send My Quote →'; btn.disabled = false; alert('Something went wrong. Please WhatsApp us directly.'); });
   }
@@ -2087,8 +2090,8 @@
     /* Send notification to you */
     emailjs.send('service_y6mn8qs', 'template_qchlywg', templateParams)
       .then(() => {
-        /* Send confirmation to client */
-        return emailjs.send('service_y6mn8qs', 'template_0motxqt', templateParams);
+        /* Client confirmation email is now sent by the Apps Script (Google) so it reaches inboxes */
+        return true;
       })
       .then(() => {
         /* Trigger Google Apps Script to generate documents — fire it, but don't
