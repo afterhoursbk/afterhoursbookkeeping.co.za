@@ -22,6 +22,59 @@
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <script>emailjs.init('G98QQD5NBbMmQnZxn');</script>
+  <!-- ── ANALYTICS (GA4 + Meta Pixel), loaded only after consent ── -->
+  <script>
+  /* IDs are public by nature (they appear in page source). Leave blank to disable a tool. */
+  var AHB_GA_ID = '';      /* e.g. 'G-XXXXXXXXXX' (GA4 Measurement ID) */
+  var AHB_PIXEL_ID = '';   /* e.g. '123456789012345' (Meta Pixel ID) */
+
+  /* Remember where the visitor came from (session only, no cookies) */
+  (function () {
+    try {
+      var q = new URLSearchParams(location.search), keys = ['utm_source','utm_medium','utm_campaign'], found = false, cur = {};
+      keys.forEach(function (k) { var v = q.get(k); if (v) { cur[k] = v.slice(0, 80); found = true; } });
+      if (found) sessionStorage.setItem('ahb_utm', JSON.stringify(cur));
+    } catch (e) {}
+  })();
+  function ahbSource() {
+    try {
+      var u = JSON.parse(sessionStorage.getItem('ahb_utm') || '{}');
+      return { utm_source: u.utm_source || 'direct', utm_medium: u.utm_medium || '', utm_campaign: u.utm_campaign || '' };
+    } catch (e) { return { utm_source: 'direct', utm_medium: '', utm_campaign: '' }; }
+  }
+  function ahbConsent() { try { return localStorage.getItem('ahb_consent'); } catch (e) { return null; } }
+
+  var ahbLoaded = false;
+  function ahbLoadAnalytics() {
+    if (ahbLoaded) return; ahbLoaded = true;
+    if (AHB_GA_ID) {
+      var g = document.createElement('script'); g.async = true;
+      g.src = 'https://www.googletagmanager.com/gtag/js?id=' + AHB_GA_ID; document.head.appendChild(g);
+      window.dataLayer = window.dataLayer || [];
+      window.gtag = function () { dataLayer.push(arguments); };
+      gtag('js', new Date());
+      gtag('config', AHB_GA_ID, { anonymize_ip: true });
+    }
+    if (AHB_PIXEL_ID) {
+      !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+      fbq('init', AHB_PIXEL_ID);
+      fbq('track', 'PageView');
+    }
+  }
+  /* Events never include names, emails or other personal details */
+  var AHB_PIXEL_MAP = { quote_generated:['trackCustom','QuoteGenerated'], quote_emailed:['track','Lead'], quote_discuss:['track','Lead'], quote_accepted:['track','InitiateCheckout'], onboarding_submitted:['track','CompleteRegistration'], whatsapp_click:['track','Contact'] };
+  function ahbTrack(name, params) {
+    try {
+      if (ahbConsent() !== 'yes') return;
+      var p = Object.assign({}, ahbSource(), params || {});
+      if (window.gtag && AHB_GA_ID) gtag('event', name, p);
+      if (window.fbq && AHB_PIXEL_ID && AHB_PIXEL_MAP[name]) {
+        var m = AHB_PIXEL_MAP[name]; fbq(m[0], m[1], params && params.value ? { value: params.value, currency: 'ZAR' } : {});
+      }
+    } catch (e) {}
+  }
+  if (ahbConsent() === 'yes') ahbLoadAnalytics();
+  </script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -744,6 +797,14 @@
       .calc-options { grid-template-columns: 1fr 1fr; }
       .ob-grid-2 { grid-template-columns: 1fr; }
     }
+    /* ── COOKIE NOTICE ── */
+    #ahb-consent { position: fixed; left: 16px; right: 16px; bottom: 16px; z-index: 9999; max-width: 720px; margin: 0 auto; background: var(--ink); color: #fff; border: 1px solid var(--sky); border-radius: 10px; padding: 16px 18px; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; line-height: 1.5; box-shadow: 0 8px 30px rgba(0,0,0,0.3); display: none; }
+    #ahb-consent p { margin: 0 0 10px; }
+    #ahb-consent .ahb-more { display: none; color: #cfe0f2; font-size: 0.8rem; }
+    #ahb-consent button { font-family: inherit; font-size: 0.85rem; font-weight: 600; padding: 9px 18px; border-radius: 6px; cursor: pointer; border: 1.5px solid var(--sky); margin-right: 8px; }
+    #ahb-consent .ahb-yes { background: var(--sky); color: var(--ink); }
+    #ahb-consent .ahb-no { background: transparent; color: #fff; }
+    #ahb-consent .ahb-link { background: none; border: none; color: var(--sky); text-decoration: underline; padding: 9px 4px; font-weight: 500; }
   </style>
 </head>
 <body>
@@ -1223,6 +1284,7 @@
 
   /* ── NAVIGATION ── */
   function goStep(n) {
+    ahbTrack('calculator_step', { step: n });
     document.querySelectorAll('.calc-step').forEach(s => s.style.display = 'none');
     document.getElementById('calc-step-' + n).style.display = 'block';
   }
@@ -1390,6 +1452,7 @@
 
   /* ── SHOW RESULT ── */
   function showResult(total, planLabel, includes, base, overage, addonList, txRaw) {
+    ahbTrack('quote_generated', { plan: planLabel, value: total });
     const card = document.getElementById('calc-result-card');
     const overageRow = overage > 0 ? `
       <tr style="border-bottom:1px solid var(--warm);">
@@ -1481,6 +1544,7 @@
       s: includes.join('|'),
       pl: plan
     };
+    ahbTrack('quote_discuss', { plan: planLabel, value: total });
     const encoded = btoa(JSON.stringify(quoteData));
     const link = `https://afterhoursbookkeeping.co.za/?q=${encoded}`;
 
@@ -1585,14 +1649,15 @@
     btn.textContent = 'Sending...'; btn.disabled = true;
     fetch('https://script.google.com/macros/s/AKfycbyl_IiUyAZF0uaRsk1RsGxWVEYJALPkkvPXaNOrtqs7MohcwmU2JJdCEEofWJboo945-A/exec', {
       method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({ type: 'quote', client_email: email, plan: params.plan, monthly_fee: params.monthly_fee, services: params.services })
+      body: JSON.stringify({ type: 'quote', client_email: email, plan: params.plan, monthly_fee: params.monthly_fee, services: params.services, utm_source: ahbSource().utm_source, utm_medium: ahbSource().utm_medium, utm_campaign: ahbSource().utm_campaign })
     })
-      .then(() => { document.getElementById('email-quote-box').innerHTML = `<p style="color:var(--sky); font-weight:600; text-align:center; padding:1rem;">✅ Quote sent to ${email}! We'll be in touch shortly.</p>`; })
+      .then(() => { ahbTrack('quote_emailed', { plan: planLabel, value: total }); document.getElementById('email-quote-box').innerHTML = `<p style="color:var(--sky); font-weight:600; text-align:center; padding:1rem;">✅ Quote sent to ${email}! We'll be in touch shortly.</p>`; })
       .catch(() => { btn.textContent = 'Send My Quote →'; btn.disabled = false; alert('Something went wrong. Please WhatsApp us directly.'); });
   }
 
   /* ── OPEN ONBOARDING ── */
   function openOnboarding() {
+    ahbTrack('quote_accepted', { plan: quoteState.planLabel, value: quoteState.total });
     const ob = document.getElementById('onboarding-section');
     ob.style.display = 'block';
     ob.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -2109,9 +2174,13 @@
             monthly_fee:   templateParams.monthly_fee,
             start_date:    templateParams.start_date,
             services:      templateParams.services || document.getElementById('ob-services').innerText,
+            utm_source:    ahbSource().utm_source,
+            utm_medium:    ahbSource().utm_medium,
+            utm_campaign:  ahbSource().utm_campaign,
           })
         }).catch(err => console.error('Apps Script error (background):', err));
 
+        ahbTrack('onboarding_submitted');
         document.getElementById('ob-success').style.display = 'block';
         document.getElementById('ob-success').scrollIntoView({ behavior: 'smooth', block: 'start' });
       })
@@ -2146,8 +2215,44 @@
     <img src="/logo-nav.png" alt="After Hours Bookkeeping" style="height:60px; width:auto; display:block; ">
   </div>
   <a href="https://www.facebook.com/profile.php?id=61587026606190" target="_blank" rel="noopener" aria-label="After Hours Bookkeeping on Facebook" style="color:var(--sky); display:inline-flex; align-items:center;"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.413c0-3.026 1.792-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.971h-1.513c-1.491 0-1.956.931-1.956 1.886v2.264h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/></svg></a>
-  <div class="footer-copy">© 2026 After Hours Bookkeeping. All rights reserved.</div>
+  <div class="footer-copy">© 2026 After Hours Bookkeeping. All rights reserved. <a href="#" onclick="ahbShowConsent(); return false;" style="color:var(--sky); text-decoration:none; margin-left:10px;">Cookie settings</a></div>
 </footer>
+
+<!-- ── COOKIE NOTICE ──────────────────── -->
+<div id="ahb-consent" role="dialog" aria-label="Cookie notice">
+  <p>We use Google Analytics and the Meta Pixel to see how visitors use this site and to measure our ads. This involves cookies and shares anonymous usage data with Google and Meta. Accept or decline: the site works the same either way.</p>
+  <p class="ahb-more">Collected: pages viewed, calculator steps, which ad or link brought you here, and approximate location. We never send your name, email address or any quote details you type in to Google or Meta. You can change your choice at any time using "Cookie settings" in the footer. Questions: hello@afterhoursbookkeeping.co.za.</p>
+  <button class="ahb-yes" onclick="ahbSetConsent('yes')">Accept</button>
+  <button class="ahb-no" onclick="ahbSetConsent('no')">Decline</button>
+  <button class="ahb-link" onclick="document.querySelector('#ahb-consent .ahb-more').style.display='block'; this.style.display='none';">More details</button>
+</div>
+<script>
+  function ahbShowConsent() { document.getElementById('ahb-consent').style.display = 'block'; }
+  function ahbSetConsent(v) {
+    try { localStorage.setItem('ahb_consent', v); } catch (e) {}
+    document.getElementById('ahb-consent').style.display = 'none';
+    if (v === 'yes') ahbLoadAnalytics();
+    else if (document.cookie) { /* clear analytics cookies if the visitor withdraws consent */
+      document.cookie.split(';').forEach(function (c) { var n = c.split('=')[0].trim(); if (/^(_ga|_gid|_fbp|_fbc)/.test(n)) { document.cookie = n + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=.' + location.hostname.replace(/^www\./, ''); document.cookie = n + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/'; } });
+    }
+  }
+  if (!ahbConsent() && (AHB_GA_ID || AHB_PIXEL_ID)) ahbShowConsent();
+
+  /* Funnel events: calculator seen, WhatsApp / nav clicks */
+  (function () {
+    var seen = document.getElementById('pricing');
+    if (seen && 'IntersectionObserver' in window) {
+      var io = new IntersectionObserver(function (es) { if (es[0].isIntersecting) { ahbTrack('calculator_view'); io.disconnect(); } }, { threshold: 0.3 });
+      io.observe(seen);
+    }
+    document.addEventListener('click', function (e) {
+      var a = e.target.closest && e.target.closest('a'); if (!a) return;
+      if ((a.href || '').indexOf('wa.me') > -1) ahbTrack('whatsapp_click', { location: a.closest('section') ? (a.closest('section').id || a.closest('section').className) : 'page' });
+      else if (a.classList.contains('nav-quote')) ahbTrack('nav_quote_click');
+      else if (a.closest('.hero-actions')) ahbTrack('hero_click', { label: a.textContent.trim().slice(0, 30) });
+    });
+  })();
+</script>
 
 </body>
 </html>
