@@ -798,13 +798,13 @@
       .ob-grid-2 { grid-template-columns: 1fr; }
     }
     /* ── COOKIE NOTICE ── */
-    #ahb-consent { position: fixed; left: 16px; right: 16px; bottom: 16px; z-index: 9999; max-width: 720px; margin: 0 auto; background: var(--ink); color: #fff; border: 1px solid var(--sky); border-radius: 10px; padding: 16px 18px; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; line-height: 1.5; box-shadow: 0 8px 30px rgba(0,0,0,0.3); display: none; }
-    #ahb-consent p { margin: 0 0 10px; }
-    #ahb-consent .ahb-more { display: none; color: #cfe0f2; font-size: 0.8rem; }
-    #ahb-consent button { font-family: inherit; font-size: 0.85rem; font-weight: 600; padding: 9px 18px; border-radius: 6px; cursor: pointer; border: 1.5px solid var(--sky); margin-right: 8px; }
+    #ahb-consent { position: fixed; left: 0; right: 0; bottom: 0; z-index: 9999; background: var(--ink); color: #fff; padding: 14px 20px; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; line-height: 1.5; box-shadow: 0 -4px 20px rgba(0,0,0,0.25); display: none; }
+    #ahb-consent .ahb-bar { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+    #ahb-consent p { margin: 0; flex: 1 1 320px; }
+    #ahb-consent .ahb-btns { display: flex; gap: 8px; }
+    #ahb-consent button { font-family: inherit; font-size: 0.85rem; font-weight: 600; padding: 8px 20px; border-radius: 6px; cursor: pointer; border: 1.5px solid var(--sky); }
     #ahb-consent .ahb-yes { background: var(--sky); color: var(--ink); }
     #ahb-consent .ahb-no { background: transparent; color: #fff; }
-    #ahb-consent .ahb-link { background: none; border: none; color: var(--sky); text-decoration: underline; padding: 9px 4px; font-weight: 500; }
   </style>
 </head>
 <body>
@@ -2220,18 +2220,16 @@
 
 <!-- ── COOKIE NOTICE ──────────────────── -->
 <div id="ahb-consent" role="dialog" aria-label="Cookie notice">
-  <p id="ahb-consent-text">We use Google Analytics to see how visitors use this site. This involves cookies and shares anonymous usage data with Google. Accept or decline: the site works the same either way.</p>
-  <p class="ahb-more">Collected: pages viewed, calculator steps, which ad or link brought you here, and approximate location. We never send your name, email address or any quote details you type in to Google or Meta. You can change your choice at any time using "Cookie settings" in the footer. Questions: hello@afterhoursbookkeeping.co.za.</p>
-  <button class="ahb-yes" onclick="ahbSetConsent('yes')">Accept</button>
-  <button class="ahb-no" onclick="ahbSetConsent('no')">Decline</button>
-  <button class="ahb-link" onclick="document.querySelector('#ahb-consent .ahb-more').style.display='block'; this.style.display='none';">More details</button>
+  <div class="ahb-bar">
+    <p id="ahb-consent-text">We use cookies to understand how visitors use this site and to measure our ads. No names, emails or quote details are shared. Questions: hello@afterhoursbookkeeping.co.za.</p>
+    <div class="ahb-btns">
+      <button class="ahb-no" onclick="ahbSetConsent('no')">Reject</button>
+      <button class="ahb-yes" onclick="ahbSetConsent('yes')">Accept all</button>
+    </div>
+  </div>
 </div>
 <script>
   function ahbShowConsent() {
-    var t = [], w = [];
-    if (AHB_GA_ID) { t.push('Google Analytics'); w.push('Google'); }
-    if (AHB_PIXEL_ID) { t.push('the Meta Pixel'); w.push('Meta'); }
-    if (t.length) document.getElementById('ahb-consent-text').textContent = 'We use ' + t.join(' and ') + ' to see how visitors use this site' + (AHB_PIXEL_ID ? ' and to measure our ads' : '') + '. This involves cookies and shares anonymous usage data with ' + w.join(' and ') + '. Accept or decline: the site works the same either way.';
     document.getElementById('ahb-consent').style.display = 'block';
   }
   function ahbSetConsent(v) {
