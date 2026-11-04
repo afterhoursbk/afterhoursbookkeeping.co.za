@@ -1645,11 +1645,22 @@
     const btn = document.querySelector('button[onclick="submitEmailQuote()"]');
     btn.textContent = 'Sending...'; btn.disabled = true;
     fetch('https://script.google.com/macros/s/AKfycbyl_IiUyAZF0uaRsk1RsGxWVEYJALPkkvPXaNOrtqs7MohcwmU2JJdCEEofWJboo945-A/exec', {
-      method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
+      method: 'POST', headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify({ type: 'quote', client_email: email, plan: params.plan, monthly_fee: params.monthly_fee, services: params.services, utm_source: ahbSource().utm_source, utm_medium: ahbSource().utm_medium, utm_campaign: ahbSource().utm_campaign })
     })
-      .then(() => { ahbTrack('quote_emailed', { plan: planLabel, value: total }); document.getElementById('email-quote-box').innerHTML = `<p style="color:var(--sky); font-weight:600; text-align:center; padding:1rem;">✅ Quote sent to ${email}! We'll be in touch shortly.</p>`; })
-      .catch(() => { btn.textContent = 'Send My Quote →'; btn.disabled = false; alert('Something went wrong. Please WhatsApp us directly.'); });
+      .then(r => r.json())
+      .then(res => {
+        if (!res || res.ok !== true) throw new Error((res && res.error) || 'Quote not sent');
+        ahbTrack('quote_emailed', { plan: planLabel, value: total });
+        document.getElementById('email-quote-box').innerHTML = `<p style="color:var(--sky); font-weight:600; text-align:center; padding:1rem;">✅ Quote sent to ${email}! We'll be in touch shortly.</p>`;
+      })
+      .catch(err => {
+        console.error('Quote email failed:', err);
+        btn.textContent = 'Send My Quote →'; btn.disabled = false;
+        let f = document.getElementById('quote-fail');
+        if (!f) { f = document.createElement('p'); f.id = 'quote-fail'; f.style.cssText = 'color:#ff8a80; font-weight:600; text-align:center; margin-top:10px;'; btn.parentElement.appendChild(f); }
+        f.innerHTML = 'We couldn\'t send your quote - please <a href="https://wa.me/27661211942" style="color:var(--sky);">WhatsApp us</a>';
+      });
   }
 
   /* ── OPEN ONBOARDING ── */
