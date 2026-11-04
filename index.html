@@ -25,7 +25,7 @@
   <!-- ── ANALYTICS (GA4 + Meta Pixel), loaded only after consent ── -->
   <script>
   /* IDs are public by nature (they appear in page source). Leave blank to disable a tool. */
-  var AHB_GA_ID = '';      /* e.g. 'G-XXXXXXXXXX' (GA4 Measurement ID) */
+  var AHB_GA_ID = 'G-26206PTPGX';      /* GA4 Measurement ID */
   var AHB_PIXEL_ID = '';   /* e.g. '123456789012345' (Meta Pixel ID) */
 
   /* Remember where the visitor came from (session only, no cookies) */
@@ -2220,14 +2220,20 @@
 
 <!-- ── COOKIE NOTICE ──────────────────── -->
 <div id="ahb-consent" role="dialog" aria-label="Cookie notice">
-  <p>We use Google Analytics and the Meta Pixel to see how visitors use this site and to measure our ads. This involves cookies and shares anonymous usage data with Google and Meta. Accept or decline: the site works the same either way.</p>
+  <p id="ahb-consent-text">We use Google Analytics to see how visitors use this site. This involves cookies and shares anonymous usage data with Google. Accept or decline: the site works the same either way.</p>
   <p class="ahb-more">Collected: pages viewed, calculator steps, which ad or link brought you here, and approximate location. We never send your name, email address or any quote details you type in to Google or Meta. You can change your choice at any time using "Cookie settings" in the footer. Questions: hello@afterhoursbookkeeping.co.za.</p>
   <button class="ahb-yes" onclick="ahbSetConsent('yes')">Accept</button>
   <button class="ahb-no" onclick="ahbSetConsent('no')">Decline</button>
   <button class="ahb-link" onclick="document.querySelector('#ahb-consent .ahb-more').style.display='block'; this.style.display='none';">More details</button>
 </div>
 <script>
-  function ahbShowConsent() { document.getElementById('ahb-consent').style.display = 'block'; }
+  function ahbShowConsent() {
+    var t = [], w = [];
+    if (AHB_GA_ID) { t.push('Google Analytics'); w.push('Google'); }
+    if (AHB_PIXEL_ID) { t.push('the Meta Pixel'); w.push('Meta'); }
+    if (t.length) document.getElementById('ahb-consent-text').textContent = 'We use ' + t.join(' and ') + ' to see how visitors use this site' + (AHB_PIXEL_ID ? ' and to measure our ads' : '') + '. This involves cookies and shares anonymous usage data with ' + w.join(' and ') + '. Accept or decline: the site works the same either way.';
+    document.getElementById('ahb-consent').style.display = 'block';
+  }
   function ahbSetConsent(v) {
     try { localStorage.setItem('ahb_consent', v); } catch (e) {}
     document.getElementById('ahb-consent').style.display = 'none';
